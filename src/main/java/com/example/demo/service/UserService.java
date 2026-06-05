@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -74,6 +75,10 @@ public class UserService {
         user.setFullName(req.getFullName());
         user.setPhone(req.getPhone());
         user.setAddress(req.getAddress());
+        user.setRole(req.getRole());
+        user.setStatus(req.getStatus());
+
+        user.setUpdatedAt(LocalDateTime.now());
 
         User updateUser = userRepository.save(user);
 
@@ -81,14 +86,18 @@ public class UserService {
     }
 
     public void delete(Integer id) {
+
         Optional<User> optionalUser = userRepository.findById(id);
 
         if (optionalUser.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+            throw new RuntimeException("User not found");
         }
 
         User user = optionalUser.get();
+
         user.setStatus("DELETED");
+        user.setUpdatedAt(LocalDateTime.now());
+
         userRepository.save(user);
     }
 }
