@@ -1,16 +1,22 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.user.CreateUserRequest;
+import com.example.demo.dto.user.UpdateUserRequest;
 import com.example.demo.dto.user.UserResponse;
 import com.example.demo.entity.User;
 import com.example.demo.exception.ConflictException;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.OptionalInt;
 
 @Service
 @RequiredArgsConstructor
@@ -47,9 +53,42 @@ public class UserService {
         List<UserResponse> responses = new ArrayList<>();
 
         for (User user : users) {
-            responses.add(userMapper.toResponse(user));
+
+            UserResponse response = userMapper.toResponse(user);
+            responses.add(response);
         }
 
         return responses;
+    }
+
+    public UserResponse update(Integer id, UpdateUserRequest req) {
+
+        Optional<User> optionalUser = userRepository.findById(id);
+
+        if (optionalUser.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        User user = optionalUser.get();
+
+        user.setFullName(req.getFullName());
+        user.setPhone(req.getPhone());
+        user.setAddress(req.getAddress());
+
+        User updateUser = userRepository.save(user);
+
+        return userMapper.toResponse(updateUser);
+    }
+
+    public void delete(Integer id) {
+        Optional<User> optionalUser = userRepository.findById(id);
+
+        if (optionalUser.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        User user = optionalUser.get();
+        user.setStatus("DELETED");
+        userRepository.save(user);
     }
 }
